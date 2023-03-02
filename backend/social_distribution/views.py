@@ -2,11 +2,11 @@ from pstats import Stats
 import statistics
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .serializers import PostSerializer, LoginSerializer, AuthorSerializer, CommentSerializer, CreatePostSerializer
-from .models import Post, Author, Comment
+from .serializers import PostSerializer, LoginSerializer, AuthorSerializer, CommentSerializer, CreatePostSerializer, LikeSerializer
+from .models import Post, Author, Comment, Like
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, detail_route
 
 
 # Create your views here.
@@ -45,11 +45,28 @@ class PostViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status="201")
         return Response(serializer.errors, status="400")
+
+class LikeViewSet(viewsets.ModelViewSet):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+    
+    @api_view(['POST'])
+    def like(self, request, pk):
+        post_id = request.data.get('post_id')
+        user = request.user
+        if post_id and user.is_authenticated:
+            like = Like.objects.create(post_id=post_id, user=user)
+            likes_count = Like.objects.filter(post_id=post_id).count()
+            return Response({'likes:' likes_count})
+        return Response({'error: Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+            
     
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+    
 
 class LoginView(APIView):
 

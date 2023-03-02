@@ -34,7 +34,9 @@ class Post(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=200, default="No visibility")
     unlisted = models.BooleanField(default=False)
-
+    
+    def __str__(self):
+        return self.title
 
 class Comment(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
@@ -50,9 +52,11 @@ class Comment(models.Model):
 class Like(models.Model):
     user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.title
+
+    def __str__(self) -> str:
+        return f"{self.user} Like"
 
 
 
