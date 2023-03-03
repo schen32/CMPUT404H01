@@ -19,7 +19,6 @@ class Author(models.Model):
 
 
 class Post(models.Model):
-    id =models.UUIDField(primary_key=True, default=uuid.uuid4)
     #image = models.ImageField(upload_to='post_images')
     title = models.CharField(max_length=200, default="No title")
     source = models.CharField(max_length=200, default="No source")
@@ -30,6 +29,7 @@ class Post(models.Model):
     categories = models.CharField(max_length=200, default="No categories")
     count = models.IntegerField(default=0)
     comments = models.CharField(max_length=200,default="No comments")
+    like = models.ManyToManyField(User, related_name='post_likes')
     #commentSrc = models.ForeignKey(Comment, on_delete=models.CASCADE, default=1)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=200, default="No visibility")

@@ -6,7 +6,7 @@ from .serializers import PostSerializer, LoginSerializer, AuthorSerializer, Comm
 from .models import Post, Author, Comment, Like
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, detail_route
+from rest_framework.decorators import api_view
 
 
 # Create your views here.
@@ -57,8 +57,8 @@ class LikeViewSet(viewsets.ModelViewSet):
         if post_id and user.is_authenticated:
             like = Like.objects.create(post_id=post_id, user=user)
             likes_count = Like.objects.filter(post_id=post_id).count()
-            return Response({'likes:' likes_count})
-        return Response({'error: Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'likes' : likes_count})
+        return Response({'error' : 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
             
     
 

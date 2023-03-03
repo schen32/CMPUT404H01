@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Box, Button, Card,List, ListItem, TextField, Typography } from '@material-ui/core';
 import Nav from './Nav';
+import LikeButton from './Likes';
 import axios from 'axios';
 
 function Posts() {
@@ -9,6 +10,15 @@ function Posts() {
         let response = await axios.get(path);
         return response.data;
     }
+
+    const [user, setUser] = useState(null);
+    React.useEffect(() => {
+        // Fetch user data and set it to state
+        axios.get('http://localhost:8000/api/users/')
+          .then(res => setUser(res.data))
+          .catch(err => console.log(err));
+      }, []);
+
     const [Posts, setPosts] = React.useState([]);
     React.useEffect(() => {
         getposts().then((data) => {
@@ -61,22 +71,47 @@ function Posts() {
             setPosts(data);
         }
         );
+    
+    
     }
+
+    // What information would like need to send?
+    // The user who has liked it, the post they have liked
+     
+    
+
+
+
+    
 
     const [createPost, setcreatePost] = React.useState(false);
     const [openPost, setopenPost] = React.useState(false);
     const [edit, setedit] = React.useState(false);
     const [post, setPost] = React.useState([{}]);
+    const [isLiked, setLiked] = React.useState(false);
+    //const [createComment, setCreateComment] = React.useState(false);
+
     return (
         <Box>
             <Box className="App" style={{ display: "flex", flexDirection: "row", height : "100vh", width: "100vw", alignItems: "left", justifyContent: "left" }}>
+                
+                
+                
                 <Box style={{width: "170px"}}>
-                <Nav />
+                    <Nav />
                 </Box>
+
+
+
                 <Box style={{ display: "flex", flexDirection: "row", backgroundColor: "white", flex: 1, height: "100vh"}}>
+                    
+                    
                     <Box style={{display: "flex", flexDirection: "column",flex: 1, margin: "10px", borderColor: "grey", borderStyle: "solid", borderRadius: "5px"}}>
                         <Typography variant="h4">Posts</Typography>
                         <List style = {{ flex: 1, overflowY: "scroll"}}>
+                            
+                            
+                            {/* create like button and managing likes in here */}
                             {Posts.map((post) => (
                                 <ListItem key={post.id} onClick = {() => {setopenPost(true); setPost(post)}}>
                                     <Card style = {{ width: "100%", backgroundColor: "#66aeec"}}>
@@ -84,24 +119,38 @@ function Posts() {
                                             <Typography variant="h5">{post.title}</Typography>
                                             <Typography variant="body2">{post.author}</Typography>
                                             <Typography variant="body1" style={{maxHeight: "200px", overflowY: "auto"}}>{post.description}</Typography>
+                                            {user && <LikeButton postId={post.id} userId={user.id} />}
                                         </Box>
                                     </Card>
                                 </ListItem>
                             ))}
+
+
                         </List>
+
+
                         {!createPost && 
                             <Button variant="contained" color="primary" onClick={() => setcreatePost(true)} style = {{margin: 10, alignSelf: "flex-end"}}>
                                 Create Post
                             </Button>
                         }
+
+
                     </Box>
+
+
+
+                    {/* open post section ------------------------------------------------------------------------ */}
                     {openPost && (
+
                         <Box style={{ flex: 1,display: "flex", flexDirection: "column", margin: "10px", borderColor: "grey", borderStyle: "solid", borderRadius: "5px"}}>
+                            
                             {edit ? (
                                 <TextField id="title" label="Title" variant="outlined" style={{width: "95%", margin: "25px"}} value={post.title} onChange={(e) => setPost({...post, title: e.target.value})}/>
                             ) : (
                                 <Typography variant="h4">{post.title}</Typography>
                             )}
+
                             <Box style={{flex: 1, margin: "5px"}}>
                                 <Card style = {{ width: "100%", height: "100%", borderRadius: "4px", boxShadow: "0 0 10px 0 rgba(0,0,0,0.5)"}}>
                                     {edit ? (
@@ -110,7 +159,13 @@ function Posts() {
                                         <Typography variant="body1" style={{maxHeight: "100%", overflowY: "auto"}}>{post.description}</Typography>
                                     )}
                                 </Card>
+
+                                <Typography>testing a;sldfkj</Typography>
+
                             </Box>
+
+                            
+
                             <Box style={{alignSelf: "flex-end"}}>
                                 {edit && (
                                     <Button variant="contained" color="secondary" onClick={() => HandleDelete()} style = {{margin: 10, alignSelf: "flex-end"}}>
@@ -130,27 +185,83 @@ function Posts() {
                                     Close
                                 </Button>
                             </Box>
+                            
+                            {/* create comment section here, change each instance of post to comment */}
+
+                            <Box style={{flex: 1, margin: "5px", flexDirection: "row"}}>
+                                <Typography variant="h4">Comment Section</Typography>
+                                <List style = {{ flex: 1, overflowY: "scroll"}}>
+                            
+                            
+                                {Posts.map((post) => (
+                                    <ListItem key={post.id} onClick = {() => {setopenPost(true); setPost(post)}}>
+                                        <Card style = {{ width: "100%", backgroundColor: "#66aeec"}}>
+                                            <Box style = {{ paddingLeft: 2}}>
+                                                <Typography variant="h5">{post.title}</Typography>
+                                                <Typography variant="body2">{post.author}</Typography>
+                                                <Typography variant="body1" style={{maxHeight: "200px", overflowY: "auto"}}>{post.description}</Typography>
+                                                
+                                               
+                                            </Box>
+                                        </Card>
+                                    </ListItem>
+                                ))}
+
+
+                            </List>
+
+
+                            {!createPost && 
+                                <Button variant="contained" color="primary" onClick={() => setcreatePost(true)} style = {{margin: 10, alignSelf: "flex-end"}}>
+                                    Create Comment
+                                </Button>
+                            }
+
+                            </Box>
+
+
+
+
                         </Box>)
                     }
+
+
+                    {/* create post section */}
+
                     {createPost && (
+
                         <Box style={{ display: "flex", flexDirection: "column", margin: "10px", borderColor: "grey", borderStyle: "solid", borderRadius: "5px", width: "25%"}}>
                             <Typography variant="h4">Create Post</Typography>
+                            
+                            
                             <Box style={{ display: "flex", flexDirection: "column", flex: 1, margin: "10px", alignItems: "center"}}>
                                 <TextField id="title" label="Title" variant="outlined" style={{width: "95%", margin: "25px"}}/>
                                 <TextField id="description" label="Description" variant="outlined" style={{width: "95%", margin: "25px"}} multiline minRows={20}/>
                             </Box>
+
                             <Box style={{alignSelf: "flex-end"}}>
+                                
                                 <Button variant="contained" color="primary" onClick={() => CreatePost(document.getElementById("title").value, document.getElementById("description").value)} style = {{margin: 10, alignSelf: "flex-end"}}>
                                     Create
                                 </Button>
+
                                 <Button variant="contained" color="secondary" onClick={() => setcreatePost(false)} style = {{margin: 10, alignSelf: "flex-end"}}>
                                     Cancel
                                 </Button>
+
                             </Box>
                             
                         </Box>)
                     } 
+
+
+
                 </Box>
+
+
+
+
+
             </Box>
         </Box>
     )
