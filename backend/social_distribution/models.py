@@ -39,18 +39,17 @@ class Post(models.Model):
         return self.title
 
 class Comment(models.Model):
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, related_name='details', on_delete=models.CASCADE)
-    comment = models.CharField(max_length=200)
-    contentType = models.CharField(max_length=200)
-    published = models.DateTimeField(default=timezone.now)
-
+    user = models.ForeignKey(User, related_name='comment', on_delete=models.CASCADE)
+    text = models.TextField(default= "")
+    post = models.ForeignKey(Post, related_name='comment', on_delete=models.CASCADE)
+    #made_at = models.DateTimeField(default=timezone.now)
+ 
     def __str__(self):
-        return self.comment
+        return f'{self.user.username} - {self.text}'
 
 
 class Like(models.Model):
-    user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE, default=1)
     post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
