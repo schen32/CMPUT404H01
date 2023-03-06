@@ -1,22 +1,46 @@
 from pstats import Stats
 import statistics
 from django.shortcuts import (render, get_object_or_404)
-from rest_framework import viewsets, status
-from .serializers import PostSerializer, LoginSerializer, AuthorSerializer, CommentSerializer, CreatePostSerializer, LikeSerializer
-from .models import Post, Author, Comment, Like
+from rest_framework import viewsets, status, generics
+from .serializers import PostSerializer, LoginSerializer, AuthorSerializer, CommentSerializer, CreatePostSerializer, LikeSerializer, UserProfileSerializer
+from .models import Post, Author, Comment, Like, UserProfile
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, action
 from rest_framework.viewsets import ViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView, DestroyAPIView
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def user_profile(request):
+    user = request.user
+    profile = {
+        'id': user.id,
+        'host': 'test',
+        'displayName': user.get_full_name(),
+        'username': user.username,
+        'url': 'test',
+        'github': 'test',
+        'profileImage': 'test',
+    }
+    return JsonResponse(profile)
 
 
 # Create your views here.
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
+class UserProfileListCreateView(generics.ListCreateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
+class UserProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    lookup_field = 'id'
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -63,12 +87,12 @@ class LikeViewSet(viewsets.ViewSet):
             post.save()
             serializer = PostSerializer(post)
             print(f"POST request to like post {pk} by user {user} succeeded.")
-            return Response(serializer.data, status="201")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except:
             # return a 400 error if the user has already liked the post
             return Response({'error': 'You have already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post', 'delete', 'get'])
     def unlike(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
         user = request.user
@@ -82,8 +106,9 @@ class LikeViewSet(viewsets.ViewSet):
             serializer = PostSerializer(post)
             print(f"DELETE request to unlike post {pk} by user {user} succeeded.")
             return Response(serializer.data)
-        except:
+        except Exception as e:
             # return a 400 error if the user has not already liked the post
+            print(f"An error occurred while liking post {pk}: {e}")
             return Response({'error': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
     
@@ -94,23 +119,6 @@ class LikeViewSet(viewsets.ViewSet):
         serializer = LikeSerializer(likes, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
-    def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        user = request.user
-
-        try:
-            # delete the user's like if they have already liked the post
-            like = Like.objects.get(post=post, user=user)
-            like.delete()
-            post.count -= 1
-            post.save()
-            serializer = PostSerializer(post)
-            return Response(serializer.data)
-        except:
-            # return a 400 error if the user has not already liked the post
-            return Response({'error': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
-    
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()

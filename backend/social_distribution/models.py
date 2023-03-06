@@ -53,9 +53,19 @@ class Like(models.Model):
     post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
-
     def __str__(self) -> str:
         return f"{self.user} Like"
+    
+
+class UserProfile(models.Model):
+    host = models.CharField(max_length=255)
+    display_name = models.CharField(max_length=255)
+    username = models.CharField(max_length=255)
+    url = models.URLField(max_length=255)
+    github = models.URLField(max_length=255)
+    profile_image = models.URLField(max_length=255)
+    password = models.CharField(max_length=255)
+
 
 
 
