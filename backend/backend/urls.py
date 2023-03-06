@@ -22,11 +22,14 @@ router = routers.DefaultRouter()
 router.register(r'posts', views.PostViewSet)  
 router.register(r'users', views.UserViewSet)
 router.register(r'comments', views.CommentViewSet)
+router.register(r'likes', views.LikeViewSet, basename='like')
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('login', views.LoginView.as_view(), name='login'),
+    path('api/posts/<int:pk>/like', views.LikeViewSet.as_view({'post' : 'like'}), name='post-likes')
 
 
 ]
