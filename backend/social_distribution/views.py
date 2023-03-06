@@ -75,41 +75,23 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status="400")
 
 class LikeViewSet(viewsets.ViewSet):
+    serializer_class = LikeSerializer
+
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
         user = request.user
-
         try:
             # create a new like if the user has not already liked the post
             like = Like.objects.create(post=post, user=user)
             post.count += 1
             post.save()
-            serializer = PostSerializer(post)
+            serializer = self.serializer_class(like)
             print(f"POST request to like post {pk} by user {user} succeeded.")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except:
             # return a 400 error if the user has already liked the post
             return Response({'error': 'You have already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post', 'delete', 'get'])
-    def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        user = request.user
-
-        try:
-            # delete the user's like if they have already liked the post
-            like = Like.objects.get(post=post, user=user)
-            like.delete()
-            post.count -= 1
-            post.save()
-            serializer = PostSerializer(post)
-            print(f"DELETE request to unlike post {pk} by user {user} succeeded.")
-            return Response(serializer.data)
-        except Exception as e:
-            # return a 400 error if the user has not already liked the post
-            print(f"An error occurred while liking post {pk}: {e}")
-            return Response({'error': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
     
     @like.mapping.get
